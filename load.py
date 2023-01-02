@@ -2,12 +2,16 @@
 from typing import Optional
 import numpy as np
 import itertools
+import os.path
+
+
+DIRECTORY = 'data/'
 
 
 def read_images(count_filter: Optional[int],
                 filename='train-images-idx3-ubyte',
                 binary=True):
-    with open(filename, 'rb') as f:
+    with open(os.path.join(DIRECTORY, filename), 'rb') as f:
         res = f.read(2)
         assert res == b'\x00\x00'
 
@@ -46,7 +50,7 @@ def read_images(count_filter: Optional[int],
 
 def read_label(count_filter: Optional[int], filename='train-labels-idx1-ubyte'):
 
-    with open(filename, 'rb') as f:
+    with open(os.path.join(DIRECTORY, filename), 'rb') as f:
         res = f.read(2)
         assert res == b'\x00\x00'
 
