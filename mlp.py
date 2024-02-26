@@ -3,8 +3,12 @@
 import math
 from typing import Optional
 
+from os.path import normpath, split, join
+from os import makedirs
+
 import numpy as np
 import argparse
+from save import write
 
 from load import load_training, load_validation, read_images, read_label
 
@@ -91,7 +95,7 @@ def get_accuracy(predictions, Y):
     return np.sum(predictions == Y) / Y.size
 
 
-def gradient_descent(X, Y, iterations, alpha, X_validation, Y_validation):
+def gradient_descent(X, Y, iterations, alpha, X_validation, Y_validation, folder: Optional[str]):
     # W1 = 10x684
     # W2 = 10x10
     # b1 = 10x1
@@ -108,22 +112,39 @@ def gradient_descent(X, Y, iterations, alpha, X_validation, Y_validation):
         W1, b1, W2, b2 = update_params(W1, b1, W2, b2, dW1, db1, dW2, db2, alpha)
 
         if i % 50 == 0:
+
             print(f'Iteration {i}')
-            print('Accuracy[work]: ', get_accuracy(get_predictions(A2), Y))
+            accuracy_work = get_accuracy(get_predictions(A2), Y)
+            print('Accuracy[work]: ', accuracy_work)
 
             Z1, A1, Z2, A2 = forward_prop(W1, b1, W2, b2, X_validation)
-            print('Accuracy[test]:', get_accuracy(get_predictions(A2), Y_validation))
+            accuracy_test = get_accuracy(get_predictions(A2), Y_validation)
+            print('Accuracy[test]:', accuracy_test)
+
+            if folder is not None:
+                iteration_folder = join(folder, str(i))
+                makedirs(iteration_folder)
+
+                write(W1, join(iteration_folder, 'W1.txt'))
+                write(b1, join(iteration_folder, 'b1.txt'))
+                write(W2, join(iteration_folder, 'W2.txt'))
+                write(b2, join(iteration_folder, 'b2.txt'))
+
+                write(np.array([accuracy_work]), join(iteration_folder, 'accuracty_work.txt'))
+                write(np.array([accuracy_test]), join(iteration_folder, 'accuracty_test.txt'))
+
 
     return W1, b1, W2, b2
 
 
 
-def simple_perceptron(iterations: int, learning_rate: float, load_filter: Optional[int]):
+def simple_perceptron(iterations: int, learning_rate: float, load_filter: Optional[int], folder: Optional[str]):
 
     X_training, Y_training = load_training(load_filter)
+
     X_validation, Y_validation = load_validation(load_filter)
 
-    W1, b1, W2, b2 = gradient_descent(X_training, Y_training, iterations, learning_rate, X_validation, Y_validation)
+    W1, b1, W2, b2 = gradient_descent(X_training, Y_training, iterations, learning_rate, X_validation, Y_validation, folder)
 
     Z1, A1, Z2, A2 = forward_prop(W1, b1, W2, b2, X_validation)
     print('Accuracy[test]:', get_accuracy(get_predictions(A2), Y_validation))
@@ -135,6 +156,7 @@ if __name__ == '__main__':
     args.add_argument('--learning-rate', default=0.1, nargs='?', type=float)
     args.add_argument('--load-filter', default=None, nargs='?', type=int)
     args.add_argument('--iterations', default=10000, nargs='?', type=int)
+    args.add_argument('--dump', default=None, nargs=1, type=str)
 
     args = args.parse_args()
 
@@ -142,4 +164,11 @@ if __name__ == '__main__':
     load_filter = vars(args)['load_filter']
     iterations = vars(args)['iterations']
 
-    simple_perceptron(iterations, learning_rate, load_filter)
+    folder, _ = split(normpath(__file__))
+
+    if args.dump:
+        folder = join(folder, args.dump[0])
+    else:
+        folder = None
+
+    simple_perceptron(iterations, learning_rate, load_filter, folder)

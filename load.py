@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 
 from typing import Optional
 import numpy as np
@@ -73,10 +74,10 @@ def read_label(count_filter: Optional[int], filename='train-labels-idx1-ubyte'):
 
 
 def load_training(count_filter: Optional[int], binary=True):
-    Y = np.array(list(read_label(count_filter, 't10k-labels-idx1-ubyte')))
+    Y = np.array(list(read_label(count_filter, 'train-labels-idx1-ubyte')))
 
     lines = []
-    for a in read_images(count_filter, 't10k-images-idx3-ubyte', binary=binary):
+    for a in read_images(count_filter, 'train-images-idx3-ubyte', binary=binary):
         lines.append(list(itertools.chain(*a)))
 
     X = np.array(lines).T
@@ -85,10 +86,10 @@ def load_training(count_filter: Optional[int], binary=True):
 
 
 def load_validation(count_filter: Optional[int], binary=True):
-    Y = np.array(list(read_label(count_filter, 'train-labels-idx1-ubyte')))
+    Y = np.array(list(read_label(count_filter, 't10k-labels-idx1-ubyte')))
 
     lines = []
-    for a in read_images(count_filter, 'train-images-idx3-ubyte'):
+    for a in read_images(count_filter, 't10k-images-idx3-ubyte'):
         lines.append(list(itertools.chain(*a)))
 
     X = np.array(lines).T
